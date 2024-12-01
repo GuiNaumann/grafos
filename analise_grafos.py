@@ -10,6 +10,7 @@ def carregar_grafo_de_arestas(caminho_arquivo, coluna_origem, coluna_destino):
     grafo = nx.from_pandas_edgelist(arestas, source=coluna_origem, target=coluna_destino)
     return grafo
 
+# TODO: Função para plotar um grafo, com a opção de amostrar nós para grafos grandes.
 def plotar_grafo(grafo, titulo, amostra=None):
     """Plota o grafo (com amostragem opcional para grafos grandes)."""
     if amostra and len(grafo.nodes) > amostra:
@@ -22,6 +23,7 @@ def plotar_grafo(grafo, titulo, amostra=None):
     plt.title(titulo, fontsize=15)
     plt.show()
 
+# TODO: Função para plotar a distribuição de graus dos vértices de um grafo.
 def plotar_distribuicao_grau(grafo, titulo):
     """Plota a distribuição dos graus dos vértices."""
     graus = [grau for _, grau in grafo.degree()]
@@ -32,6 +34,7 @@ def plotar_distribuicao_grau(grafo, titulo):
     plt.ylabel("Frequência")
     plt.show()
 
+# TODO: Dicionário que configura os caminhos dos arquivos de entrada e suas colunas.
 # Configurar os caminhos dos arquivos
 arquivos_dados = {
     "deezer": {
@@ -54,14 +57,15 @@ arquivos_dados = {
     }
 }
 
-
+# TODO: Bloco principal para processar os grafos das redes sociais e exibir análises.
 # Processar grafos das redes sociais
 resultados = {}
 for rede in ["deezer", "facebook", "lastfm"]:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Processando a Rede: {rede.capitalize()}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
+    # TODO: Carregar o grafo da rede social atual.
     grafo = carregar_grafo_de_arestas(
         arquivos_dados[rede]["caminho"],
         arquivos_dados[rede]["coluna_origem"],
@@ -69,51 +73,57 @@ for rede in ["deezer", "facebook", "lastfm"]:
     )
     print(f"Grafo carregado com sucesso: {len(grafo.nodes):,} nós, {len(grafo.edges):,} arestas.\n")
 
+    # TODO: Plotar o grafo (Questão 1A).
     # Questão 1A: Plotar o grafo
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     print(f"Questão 1A: Plotando o Grafo")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     plotar_grafo(grafo, f"Grafo da Rede {rede.capitalize()}", amostra=1000)
 
+    # TODO: Calcular o grau médio dos vértices (Questão 1B).
     # Questão 1B: Calcular o grau médio
-    print(f"\n{'-'*40}")
+    print(f"\n{'-' * 40}")
     print(f"Questão 1B: Grau Médio")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     distribuicao_grau = [grau for _, grau in grafo.degree()]
     grau_medio = sum(distribuicao_grau) / len(distribuicao_grau)
     print(f"Grau médio: {grau_medio:.2f}")
 
+    # TODO: Plotar a distribuição de graus (Questão 1C).
     # Questão 1C: Plotar a distribuição de graus
-    print(f"\n{'-'*40}")
+    print(f"\n{'-' * 40}")
     print(f"Questão 1C: Distribuição de Graus")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     plotar_distribuicao_grau(grafo, f"Rede {rede.capitalize()}")
 
+    # TODO: Calcular o número de componentes conexos e o tamanho do maior componente (Questão 1D).
     # Questão 1D: Componentes conexos
-    print(f"\n{'-'*40}")
+    print(f"\n{'-' * 40}")
     print(f"Questão 1D: Componentes Conexos")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     num_componentes = nx.number_connected_components(grafo)
     print(f"Número de componentes conexos: {num_componentes}")
     tamanhos_componentes = [len(c) for c in nx.connected_components(grafo)]
     print(f"Tamanho do maior componente: {max(tamanhos_componentes):,} nós.")
 
     # Questão 1E: Distância média na maior componente
-    print(f"\n{'-'*40}")
+    print(f"\n{'-' * 40}")
     print(f"Questão 1E: Distância Média na Maior Componente")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     maior_componente = max(nx.connected_components(grafo), key=len)
     subgrafo_maior = grafo.subgraph(maior_componente)
     distancia_media = nx.average_shortest_path_length(subgrafo_maior)
     print(f"Distância média na maior componente: {distancia_media:.2f}")
 
+    # TODO: Identificar arestas pontes (Questão 1F).
     # Questão 1F: Arestas pontes
-    print(f"\n{'-'*40}")
+    print(f"\n{'-' * 40}")
     print(f"Questão 1F: Arestas Pontes")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     arestas_pontes = list(nx.bridges(grafo))
     print(f"Número de arestas pontes: {len(arestas_pontes):,}\n")
 
+    # TODO: Salvar os resultados para o resumo final.
     # Salvar resultados
     resultados[rede] = {
         "grau_medio": grau_medio,
@@ -123,17 +133,17 @@ for rede in ["deezer", "facebook", "lastfm"]:
         "numero_arestas_pontes": len(arestas_pontes),
     }
 
+# TODO: Exibir um resumo final de todas as redes processadas.
 # Exibir resumo final
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print("Resumo Final de Todas as Redes")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 for rede, analise in resultados.items():
     print(f"\nRede: {rede.capitalize()}")
-    print(f"{'-'*40}")
+    print(f"{'-' * 40}")
     for metrica, valor in analise.items():
         print(f"{metrica.replace('_', ' ').capitalize()}: {valor}")
-    print(f"{'-'*40}")
-
+    print(f"{'-' * 40}")
 
 # todo:#################################################################################################################
 # todo:#################################################################################################################
@@ -146,11 +156,13 @@ for rede, analise in resultados.items():
 # todo:#################################################################################################################
 
 
+# TODO: Bloco dedicado à análise da rede Scientometrics (Questão 2).
 # Questão 2: Ciência Cientométrica
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print("Processando o Grafo de Citações: Scientometrics")
-print(f"{'='*60}\n")
+print(f"{'=' * 60}\n")
 
+# TODO: Carregar o grafo de citações como orientado.
 # Carregar o grafo como orientado
 grafo_citacoes = nx.read_edgelist(
     arquivos_dados["scientometrics"]["caminho"],
@@ -158,35 +170,39 @@ grafo_citacoes = nx.read_edgelist(
 )
 print(f"Grafo carregado com sucesso: {len(grafo_citacoes.nodes):,} nós, {len(grafo_citacoes.edges):,} arestas.\n")
 
+# TODO: Calcular a densidade do grafo (Questão 2A).
 # Questão 2A: Densidade do Grafo
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Questão 2A: Densidade do Grafo")
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 densidade = nx.density(grafo_citacoes)
 print(f"Densidade do Grafo: {densidade:.4f}\n")
 
+# TODO: Calcular o grau médio de entrada e saída (Questão 2B).
 # Questão 2B: Grau dos Vértices
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Questão 2B: Grau dos Vértices")
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 grau_entrada = sum(dict(grafo_citacoes.in_degree()).values()) / len(grafo_citacoes.nodes)
 grau_saida = sum(dict(grafo_citacoes.out_degree()).values()) / len(grafo_citacoes.nodes)
 print(f"Grau médio de entrada: {grau_entrada:.2f}")
 print(f"Grau médio de saída: {grau_saida:.2f}\n")
 
+# TODO: Identificar componentes fortemente e fracamente conectados (Questão 2C).
 # Questão 2C: Componentes Conexos
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Questão 2C: Componentes Conexos")
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 componentes_fortes = nx.number_strongly_connected_components(grafo_citacoes)
 componentes_fracos = nx.number_weakly_connected_components(grafo_citacoes)
 print(f"Número de componentes fortemente conectados: {componentes_fortes}")
 print(f"Número de componentes fracamente conectados: {componentes_fracos}\n")
 
+# TODO: Verificar ciclos e calcular caminhos mais curtos na maior componente (Questão 2D).
 # Questão 2D: Caminhos e Ciclos
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Questão 2D: Caminhos e Ciclos")
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Verificando a presença de ciclos...")
 ciclos = list(nx.simple_cycles(grafo_citacoes))
 print(f"Número de ciclos encontrados: {len(ciclos)}")
@@ -198,11 +214,13 @@ try:
 except nx.NetworkXError:
     print("O grafo não é fortemente conectado; não é possível calcular a distância média.\n")
 
+# TODO: Exibir centralidade de grau normalizada e grau absoluto (Questão 2E).
 # Questão 2E: Centralidade de Grau
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 print("Questão 2E: Centralidade de Grau")
-print(f"{'-'*40}")
+print(f"{'-' * 40}")
 
+# TODO: Calcular e exibir centralidade de grau normalizada.
 # Centralidade de Grau Normalizada
 centralidade_grau_entrada = nx.in_degree_centrality(grafo_citacoes)
 centralidade_grau_saida = nx.out_degree_centrality(grafo_citacoes)
@@ -215,6 +233,7 @@ print("\nTop 5 nós por centralidade de grau (saída - normalizada):")
 for no, valor in sorted(centralidade_grau_saida.items(), key=lambda x: x[1], reverse=True)[:5]:
     print(f"Nó {no}: {valor:.4f}")
 
+# TODO: Calcular e exibir grau absoluto.
 # Grau Absoluto
 graus_entrada = dict(grafo_citacoes.in_degree())
 graus_saida = dict(grafo_citacoes.out_degree())
@@ -226,6 +245,13 @@ for no, grau in sorted(graus_entrada.items(), key=lambda x: x[1], reverse=True)[
 print("\nTop 5 nós por grau de saída (absoluto):")
 for no, grau in sorted(graus_saida.items(), key=lambda x: x[1], reverse=True)[:5]:
     print(f"Nó {no}: {grau}")
+
+# TODO:
+# TODO:
+# TODO: HTML
+# TODO:
+# TODO:
+
 # TODO: Gerar um arquivo HTML aprimorado e mais organizado para exibir os resultados
 html_content = """
 <!DOCTYPE html>
@@ -401,4 +427,3 @@ with open("resultados.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
 print("Arquivo HTML gerado: resultados.html")
-
