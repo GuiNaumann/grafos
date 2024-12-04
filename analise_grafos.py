@@ -1,31 +1,43 @@
 import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
+from collections import Counter
+import plotly.graph_objects as go
 
 # TODO: Função para carregar um grafo a partir de um arquivo CSV contendo arestas.
-def carregar_grafo_de_arestas(caminho_arquivo, coluna_origem, coluna_destino):
+def carregar_grafo_de_arestas(caminho_arquivo, coluna_origem, coluna_destino, dirigido):
     """Carrega um grafo a partir de um arquivo CSV contendo arestas."""
     arestas = pd.read_csv(caminho_arquivo)
-    print("Colunas carregadas:", arestas.columns)  # Depuração para verificar colunas
-    grafo = nx.from_pandas_edgelist(arestas, source=coluna_origem, target=coluna_destino)
+
+    if dirigido:
+        grafo = nx.from_pandas_edgelist(arestas, source=coluna_origem, target=coluna_destino, create_using=nx.DiGraph())
+    else:
+        grafo = nx.from_pandas_edgelist(arestas, source=coluna_origem, target=coluna_destino, create_using=nx.Graph())
+
     return grafo
 
 # TODO: Função para plotar um grafo, com a opção de amostrar nós para grafos grandes.
 def plotar_grafo(grafo, titulo, amostra=None):
-    """Plota o grafo (com amostragem opcional para grafos grandes)."""
     if amostra and len(grafo.nodes) > amostra:
         print(f"Grafo grande detectado! Amostrando {amostra} nós para visualização...")
         nos_amostrados = list(grafo.nodes)[:amostra]
         grafo = grafo.subgraph(nos_amostrados)
     plt.figure(figsize=(10, 10))
     pos = nx.spring_layout(grafo, seed=42)
-    nx.draw(grafo, pos, node_size=10, edge_color="gray", node_color="blue", with_labels=False, alpha=0.7)
+    nx.draw(
+        grafo,
+        pos,
+        node_size=10,
+        edge_color="gray",
+        node_color="purple",
+        with_labels=False,
+        alpha=0.7
+    )
     plt.title(titulo, fontsize=15)
     plt.show()
 
 # TODO: Função para plotar a distribuição de graus dos vértices de um grafo.
 def plotar_distribuicao_grau(grafo, titulo):
-    """Plota a distribuição dos graus dos vértices."""
     graus = [grau for _, grau in grafo.degree()]
     plt.figure(figsize=(8, 6))
     plt.hist(graus, bins=30, color="blue", edgecolor="black", alpha=0.7)
@@ -34,23 +46,67 @@ def plotar_distribuicao_grau(grafo, titulo):
     plt.ylabel("Frequência")
     plt.show()
 
+def plotar_distribuicao_grau_plotly(grafo, titulo):
+    graus = [grau for _, grau in grafo.degree()]
+    quantidade = Counter(graus)
+    graus_unicos = list(quantidade.keys())
+    valores_quantidade = list(quantidade.values())
+
+    fig = go.Figure(data=[
+        go.Bar(
+            x=graus_unicos,
+            y=valores_quantidade,
+            text=valores_quantidade,
+            textposition='outside',
+            marker=dict(
+                color=valores_quantidade,
+                colorscale=[
+                    [0, 'indigo'],
+                    [1, 'violet']
+                ]
+            )
+        )
+    ])
+
+    fig.update_layout(
+        title=dict(
+            text=f"Distribuição de Graus - {titulo}",
+            font=dict(size=20, color="black", family="Arial"),
+            x=0.5  # Centraliza o título
+        ),
+        xaxis=dict(
+            title="Grau",
+            titlefont=dict(size=16, color="black", family="Arial"),
+            rangeslider=dict(visible=True)
+        ),
+        yaxis=dict(
+            title="Quantidade",
+            titlefont=dict(size=16, color="black", family="Arial")
+        ),
+        bargap=0.15
+    )
+    fig.show()
+
 # TODO: Dicionário que configura os caminhos dos arquivos de entrada e suas colunas.
 # Configurar os caminhos dos arquivos
 arquivos_dados = {
     "deezer": {
         "caminho": "social_networks/deezer_europe/deezer_europe_edges.csv",
         "coluna_origem": "node_1",
-        "coluna_destino": "node_2"
+        "coluna_destino": "node_2",
+        "bool": True
     },
     "facebook": {
         "caminho": "social_networks/facebook_large/musae_facebook_edges.csv",
         "coluna_origem": "id_1",
-        "coluna_destino": "id_2"
+        "coluna_destino": "id_2",
+        "bool": False
     },
     "lastfm": {
         "caminho": "social_networks/lastfm_asia/lastfm_asia_edges.csv",
         "coluna_origem": "node_1",
-        "coluna_destino": "node_2"
+        "coluna_destino": "node_2",
+        "bool": True
     },
     "scientometrics": {
         "caminho": "scientometrics/scientometrics/scientometrics.net"
@@ -69,7 +125,8 @@ for rede in ["deezer", "facebook", "lastfm"]:
     grafo = carregar_grafo_de_arestas(
         arquivos_dados[rede]["caminho"],
         arquivos_dados[rede]["coluna_origem"],
-        arquivos_dados[rede]["coluna_destino"]
+        arquivos_dados[rede]["coluna_destino"],
+        arquivos_dados[rede]["bool"]
     )
     print(f"Grafo carregado com sucesso: {len(grafo.nodes):,} nós, {len(grafo.edges):,} arestas.\n")
 
@@ -78,7 +135,7 @@ for rede in ["deezer", "facebook", "lastfm"]:
     print(f"{'-' * 40}")
     print(f"Questão 1A: Plotando o Grafo")
     print(f"{'-' * 40}")
-    plotar_grafo(grafo, f"Grafo da Rede {rede.capitalize()}", amostra=1000)
+    plotar_grafo(grafo, f"Grafo da Rede {rede.capitalize()}", amostra=5)
 
     # TODO: Calcular o grau médio dos vértices (Questão 1B).
     # Questão 1B: Calcular o grau médio
@@ -89,22 +146,38 @@ for rede in ["deezer", "facebook", "lastfm"]:
     grau_medio = sum(distribuicao_grau) / len(distribuicao_grau)
     print(f"Grau médio: {grau_medio:.2f}")
 
-    # TODO: Plotar a distribuição de graus (Questão 1C).
-    # Questão 1C: Plotar a distribuição de graus
+    # # TODO: Plotar a distribuição de graus (Questão 1C).
+    # # Questão 1C: Plotar a distribuição de graus
     print(f"\n{'-' * 40}")
     print(f"Questão 1C: Distribuição de Graus")
     print(f"{'-' * 40}")
-    plotar_distribuicao_grau(grafo, f"Rede {rede.capitalize()}")
+    # plotar_distribuicao_grau(grafo, f"Rede {rede.capitalize()}")
+    # plotar_distribuicao_grau(grafo, f"Rede {rede.capitalize()}")
+    # Plotar a distribuição com plotly
+    plotar_distribuicao_grau_plotly(grafo, f"Rede {rede.capitalize()}")
+
 
     # TODO: Calcular o número de componentes conexos e o tamanho do maior componente (Questão 1D).
     # Questão 1D: Componentes conexos
     print(f"\n{'-' * 40}")
     print(f"Questão 1D: Componentes Conexos")
     print(f"{'-' * 40}")
-    num_componentes = nx.number_connected_components(grafo)
-    print(f"Número de componentes conexos: {num_componentes}")
-    tamanhos_componentes = [len(c) for c in nx.connected_components(grafo)]
-    print(f"Tamanho do maior componente: {max(tamanhos_componentes):,} nós.")
+    if grafo.is_directed():
+        # Para grafos direcionados
+        num_componentes_fracos = nx.number_weakly_connected_components(grafo)
+        num_componentes_fortes = nx.number_strongly_connected_components(grafo)
+        tamanhos_componentes_fracos = [len(c) for c in nx.weakly_connected_components(grafo)]
+        tamanhos_componentes_fortes = [len(c) for c in nx.strongly_connected_components(grafo)]
+        print(f"Número de componentes fracamente conectados: {num_componentes_fracos}")
+        print(f"Tamanho do maior componente fracamente conectado: {max(tamanhos_componentes_fracos):,} nós.")
+        print(f"Número de componentes fortemente conectados: {num_componentes_fortes}")
+        print(f"Tamanho do maior componente fortemente conectado: {max(tamanhos_componentes_fortes):,} nós.")
+    else:
+        # Para grafos não direcionados
+        num_componentes = nx.number_connected_components(grafo)
+        tamanhos_componentes = [len(c) for c in nx.connected_components(grafo)]
+        print(f"Número de componentes conexos: {num_componentes}")
+        print(f"Tamanho do maior componente: {max(tamanhos_componentes):,} nós.")
 
     # Questão 1E: Distância média na maior componente
     print(f"\n{'-' * 40}")
@@ -117,21 +190,44 @@ for rede in ["deezer", "facebook", "lastfm"]:
 
     # TODO: Identificar arestas pontes (Questão 1F).
     # Questão 1F: Arestas pontes
+    # COMENTAR SE N DEMORA
     print(f"\n{'-' * 40}")
     print(f"Questão 1F: Arestas Pontes")
     print(f"{'-' * 40}")
-    arestas_pontes = list(nx.bridges(grafo))
-    print(f"Número de arestas pontes: {len(arestas_pontes):,}\n")
+    if grafo.is_directed():
+        # Arestas pontes para grafos direcionados (com conectividade fraca)
+        arestas_pontes = []
+        for u, v in grafo.edges():
+            grafo.remove_edge(u, v)
+            num_componentes = nx.number_weakly_connected_components(grafo)
+            grafo.add_edge(u, v)
+            if nx.number_weakly_connected_components(grafo) > num_componentes:
+                arestas_pontes.append((u, v))
+    else:
+        # Arestas pontes para grafos não direcionados
+        arestas_pontes = list(nx.bridges(grafo))
+        print(f"Número de arestas pontes: {len(arestas_pontes):,}\n")
 
     # TODO: Salvar os resultados para o resumo final.
-    # Salvar resultados
+    # Calcular os componentes e tamanho do maior componente dependendo do tipo de grafo
+    if grafo.is_directed():
+        # Grafos direcionados (componentes fracamente conectados)
+        numero_componentes = nx.number_weakly_connected_components(grafo)
+        tamanhos_componentes = [len(c) for c in nx.weakly_connected_components(grafo)]
+    else:
+        # Grafos não direcionados (componentes conexos)
+        numero_componentes = nx.number_connected_components(grafo)
+        tamanhos_componentes = [len(c) for c in nx.connected_components(grafo)]
+
+    # Salvar resultados no dicionário
     resultados[rede] = {
         "grau_medio": grau_medio,
-        "numero_componentes": num_componentes,
+        "numero_componentes": numero_componentes,
         "tamanho_maior_componente": max(tamanhos_componentes),
-        # "distancia_media_maior_componente": distancia_media,
-        "numero_arestas_pontes": len(arestas_pontes),
+        # COMENTAR SE N DEMORA
+        "numero_arestas_pontes": len(arestas_pontes) if 'arestas_pontes' in locals() else "N/A",  # Evita erro se não calculado
     }
+
 
 # TODO: Exibir um resumo final de todas as redes processadas.
 # Exibir resumo final
