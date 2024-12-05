@@ -399,7 +399,7 @@ arquivos_dados = {
         "caminho": "social_networks/deezer_europe/deezer_europe_edges.csv",
         "coluna_origem": "node_1",
         "coluna_destino": "node_2",
-        "bool": True
+        "bool": False
     },
     # "facebook": {
     #     "caminho": "social_networks/facebook_large/musae_facebook_edges.csv",
@@ -411,7 +411,7 @@ arquivos_dados = {
         "caminho": "social_networks/lastfm_asia/lastfm_asia_edges.csv",
         "coluna_origem": "node_1",
         "coluna_destino": "node_2",
-        "bool": True
+        "bool": False
     },
     "scientometrics": {
         "caminho": "scientometrics/scientometrics/scientometrics.net"
